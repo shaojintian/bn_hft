@@ -30,8 +30,8 @@ buy_in_price = 0
 def message_handler(_, message):
     # print(message)
     data_dict = json.loads(message)
-    bids_quantities = sum([float(bid[1]) for bid in data_dict["bids"]])
-    asks_quantities = sum([float(ask[1]) for ask in data_dict["asks"]])
+    # bids_quantities = sum([float(bid[1]) for bid in data_dict["bids"]])
+    # asks_quantities = sum([float(ask[1]) for ask in data_dict["asks"]])
 
     bid_1 = float(data_dict["bids"][0][0])
     ask_1 = float(data_dict["asks"][0][0])
