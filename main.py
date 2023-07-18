@@ -59,7 +59,7 @@ def message_handler(_, message):
         # print("BID SELL: price:%f amount:%f"% (ask_1, order_amount))
         do_order(COIN, Trade.SELL.value, 'LIMIT', ORDER_AMOUNT, ask_1)
         profit += (ask_1 - buy_in_price) * ORDER_AMOUNT
-        print("Profit:%f" % profit)
+        #print("Profit:%f" % profit)
         #
         buy_in_price = 0
         position = 0
@@ -80,14 +80,13 @@ def message_handler(_, message):
         my_client.stop()
     elif position == 1 and is_stop_loss:
         # 下单止损
-        print("STOP LOSS ON TRAILING ORDER: buy in:%f price:%f amount:%f！！！！！\n" % (buy_in_price, ask_1, ORDER_AMOUNT))
+        # print("STOP LOSS ON TRAILING ORDER: buy in:%f price:%f amount:%f！！！！！\n" % (buy_in_price, ask_1, ORDER_AMOUNT))
         # print("LOB RATIO IS: %f" % lob_now)
         do_order(COIN, Trade.SELL.value, 'LIMIT', ORDER_AMOUNT, ask_1)
         profit += (ask_1 - buy_in_price) * ORDER_AMOUNT
         # print("Profit:%f" % profit)
         buy_in_price = 0
         position = 0
-
 
 
 # fuck this fuction
