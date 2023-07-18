@@ -9,7 +9,7 @@ from binance.lib.utils import config_logging
 from binance.websocket.spot.websocket_stream import SpotWebsocketStreamClient
 from binance.spot import Spot as Client
 
-config_logging(logging, logging.DEBUG)
+config_logging(logging, logging.ERROR)
 
 # 买入比例
 LOB_THRESHOLD = 0
@@ -87,7 +87,7 @@ def message_handler(_, message):
         position = 0
 
 
-def do_order(symbol=COIN, side=None, _type='LIMIT',quantity=ORDER_AMOUNT, price=None):
+def do_order(symbol=COIN, side="SELL", _type='LIMIT',quantity=ORDER_AMOUNT, price=None):
     # Post a new order
     params = {
         'symbol': symbol,
@@ -127,10 +127,10 @@ if __name__ == '__main__':
     signal.signal(signal.SIGTSTP, handle_signal)
     signal.signal(signal.SIGINT, handle_signal)
 
-    # 获取账号
+    # 获取账号:ip_search.py
     client = Client(api_key='Ng4rh2vG90dbfjVXPAzRYPaLpGcWXuSTcxZqmNKtEXyvl1iqwUKeRG6PPqfdUkDZ',
                     api_secret='XxExX9qAXtvKE0aAiP4CiFer8qnF4sxlcoXLNCMFFu7CfTMi95SyOS82I2a5QAVc')
-    print(client.user_asset())
+    logging.debug(client.user_asset())
     # 开始运行
     my_client = SpotWebsocketStreamClient(on_message=message_handler)
 

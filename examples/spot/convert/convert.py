@@ -5,7 +5,7 @@ import logging
 from binance.spot import Spot
 from binance.lib.utils import config_logging
 from datetime import datetime
-from examples.utils.prepare_env import get_api_key
+from prepare_env import get_api_key
 
 config_logging(logging, logging.DEBUG)
 
