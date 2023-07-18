@@ -4,13 +4,17 @@ import signal
 import time
 import logging
 import json
+import enum
 from binance.lib.utils import config_logging
 from binance.websocket.spot.websocket_stream import SpotWebsocketStreamClient
+from binance.spot import Spot as Client
 
 config_logging(logging, logging.DEBUG)
 
 # 买入比例
 LOB_THRESHOLD = 0
+
+COIN = "BTCTUSD"
 
 ORDER_AMOUNT = 0.01
 
@@ -44,12 +48,14 @@ def message_handler(_, message):
         buy_in_price = bid_1
         # float(data_dict["bids"][0][1])
         # 下单
+        do_order(COIN,Trade.BUY, ORDER_AMOUNT,buy_in_price)
         # print("BID BUY: price:%f amount:%f"% (buy_in_price, order_amount))
         #
         position = 1
     elif position == 1 and ask_1 > buy_in_price:
         # 下单止盈
         # print("BID SELL: price:%f amount:%f"% (ask_1, order_amount))
+        do_order(COIN, Trade.SELL, ORDER_AMOUNT, ask_1)
         profit += (ask_1 - buy_in_price) * ORDER_AMOUNT
         print("Profit:%f" % profit)
         #
@@ -57,8 +63,9 @@ def message_handler(_, message):
         position = 0
     elif position == 1 and is_shut_down:
         # 下单停机
-        print("SHUTDOWN LOSS ON TRAILING ORDER: buy in:%f price:%f amount:%f！！！！！\n" % (
+        print("SHUTDOWN ON TRAILING ORDER: buy in:%f price:%f amount:%f！！！！！\n" % (
             buy_in_price, ask_1, ORDER_AMOUNT))
+        do_order(COIN, Trade.SELL, ORDER_AMOUNT, ask_1)
         profit += (ask_1 - buy_in_price) * ORDER_AMOUNT
         # print("Profit:%f" % profit)
         buy_in_price = 0
@@ -73,10 +80,25 @@ def message_handler(_, message):
         # 下单止损
         print("STOP LOSS ON TRAILING ORDER: buy in:%f price:%f amount:%f！！！！！\n" % (buy_in_price, ask_1, ORDER_AMOUNT))
         # print("LOB RATIO IS: %f" % lob_now)
+        do_order(COIN, Trade.SELL, ORDER_AMOUNT, ask_1)
         profit += (ask_1 - buy_in_price) * ORDER_AMOUNT
         # print("Profit:%f" % profit)
         buy_in_price = 0
         position = 0
+
+
+def do_order(symbol=COIN, side=None, quantity=ORDER_AMOUNT, price=None):
+    # Post a new order
+    params = {
+        'symbol': symbol,
+        'side': side,
+        'type': 'LIMIT',
+        'timeInForce': 'GTC',
+        'quantity': quantity,
+        'price': price
+    }
+
+    response = client.new_order_test(**params)
 
 
 def handle_signal(signum, frame):
@@ -91,15 +113,23 @@ def handle_signal(signum, frame):
     my_client.stop()
 
 
+class Trade(enum.Enum):
+    BUY = 'Buy'
+    SELL = 'Sell'
+
 if __name__ == '__main__':
-    #
     # print_profit()
     # 注册信号处理程序ctrlz
     signal.signal(signal.SIGTSTP, handle_signal)
 
+    # 获取账号
+    client = Client(api_key='Ng4rh2vG90dbfjVXPAzRYPaLpGcWXuSTcxZqmNKtEXyvl1iqwUKeRG6PPqfdUkDZ',
+                    api_secret='XxExX9qAXtvKE0aAiP4CiFer8qnF4sxlcoXLNCMFFu7CfTMi95SyOS82I2a5QAVc')
+    print(json.loads(client.account()))
+    # 开始运行
     my_client = SpotWebsocketStreamClient(on_message=message_handler)
 
-    my_client.partial_book_depth(symbol="btctusd", level=20, speed=100)
+    my_client.partial_book_depth(symbol=COIN, level=20, speed=100)
 
     start_time = time.time()
 
