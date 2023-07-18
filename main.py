@@ -89,6 +89,8 @@ def message_handler(_, message):
         position = 0
 
 
+
+# fuck this fuction
 def do_order(symbol=COIN, side="SELL", _type='LIMIT', quantity=ORDER_AMOUNT, price=None):
     # Post a new order
     params = {
@@ -98,11 +100,16 @@ def do_order(symbol=COIN, side="SELL", _type='LIMIT', quantity=ORDER_AMOUNT, pri
         'timeInForce': 'GTC',
         'quantity': quantity,
         'price': price,
-        'newOrderRespType': 'FULL',  # ACK
+        'newOrderRespType': 'ACK',  # ACK
     }
     logging.debug(params)
-    response = client.new_order(**params)
-    logging.debug(response)
+    try:
+        response = client.new_order(**params)
+        logging.debug(response)
+    except Exception as e:
+        logging.error(params)
+        logging.error(e)
+
 
 def handle_signal(signum, frame):
     # 在这里编写你想要触发的函数或操作
@@ -132,12 +139,17 @@ if __name__ == '__main__':
     print("当前代理 IP:", ip)
     # 注册信号处理程序ctrlz+c
     signal.signal(signal.SIGTSTP, handle_signal)
-    signal.signal(signal.SIGINT, handle_signal)
+    # signal.signal(signal.SIGINT, handle_signal)
 
     # 获取账号:ip_search.py
     client = Client(api_key='Ng4rh2vG90dbfjVXPAzRYPaLpGcWXuSTcxZqmNKtEXyvl1iqwUKeRG6PPqfdUkDZ',
                     api_secret='XxExX9qAXtvKE0aAiP4CiFer8qnF4sxlcoXLNCMFFu7CfTMi95SyOS82I2a5QAVc')
     logging.debug(client.user_asset())
+    # init global vaariables
+    # trade = client.my_trades(symbol=COIN, limit=1)[0]
+    # if trade["isBuyer"]:
+    #     position = 1
+    #     buy_in_price = float(trade['price'])
     # 开始运行
     my_client = SpotWebsocketStreamClient(on_message=message_handler)
 
