@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import sys
 import threading
 import signal
 import time
@@ -8,6 +9,7 @@ import enum
 from binance.lib.utils import config_logging
 from binance.websocket.spot.websocket_stream import SpotWebsocketStreamClient
 from binance.spot import Spot as Client
+from ip_search import get_current_proxy_ip
 
 config_logging(logging, logging.ERROR)
 
@@ -48,14 +50,14 @@ def message_handler(_, message):
         buy_in_price = bid_1
         # float(data_dict["bids"][0][1])
         # 下单
-        do_order(COIN,Trade.BUY.value, 'LIMIT',ORDER_AMOUNT,buy_in_price)
+        do_order(COIN, Trade.BUY.value, 'LIMIT', ORDER_AMOUNT, buy_in_price)
         # print("BID BUY: price:%f amount:%f"% (buy_in_price, order_amount))
         #
         position = 1
     elif position == 1 and ask_1 > buy_in_price:
         # 下单止盈
         # print("BID SELL: price:%f amount:%f"% (ask_1, order_amount))
-        do_order(COIN, Trade.SELL.value, 'LIMIT',ORDER_AMOUNT, ask_1)
+        do_order(COIN, Trade.SELL.value, 'LIMIT', ORDER_AMOUNT, ask_1)
         profit += (ask_1 - buy_in_price) * ORDER_AMOUNT
         print("Profit:%f" % profit)
         #
@@ -65,7 +67,7 @@ def message_handler(_, message):
         # 下单停机
         print("SHUTDOWN ON TRAILING ORDER: buy in:%f price:%f amount:%f！！！！！\n" % (
             buy_in_price, ask_1, ORDER_AMOUNT))
-        do_order(COIN, Trade.SELL.value, 'LIMIT',ORDER_AMOUNT, ask_1)
+        do_order(COIN, Trade.SELL.value, 'LIMIT', ORDER_AMOUNT, ask_1)
         profit += (ask_1 - buy_in_price) * ORDER_AMOUNT
         # print("Profit:%f" % profit)
         buy_in_price = 0
@@ -80,14 +82,14 @@ def message_handler(_, message):
         # 下单止损
         print("STOP LOSS ON TRAILING ORDER: buy in:%f price:%f amount:%f！！！！！\n" % (buy_in_price, ask_1, ORDER_AMOUNT))
         # print("LOB RATIO IS: %f" % lob_now)
-        do_order(COIN, Trade.SELL.value, 'LIMIT',ORDER_AMOUNT, ask_1)
+        do_order(COIN, Trade.SELL.value, 'LIMIT', ORDER_AMOUNT, ask_1)
         profit += (ask_1 - buy_in_price) * ORDER_AMOUNT
         # print("Profit:%f" % profit)
         buy_in_price = 0
         position = 0
 
 
-def do_order(symbol=COIN, side="SELL", _type='LIMIT',quantity=ORDER_AMOUNT, price=None):
+def do_order(symbol=COIN, side="SELL", _type='LIMIT', quantity=ORDER_AMOUNT, price=None):
     # Post a new order
     params = {
         'symbol': symbol,
@@ -96,18 +98,18 @@ def do_order(symbol=COIN, side="SELL", _type='LIMIT',quantity=ORDER_AMOUNT, pric
         'timeInForce': 'GTC',
         'quantity': quantity,
         'price': price,
-        'newOrderRespType':'ACK',
+        'newOrderRespType': 'FULL',  # ACK
     }
     logging.debug(params)
-    response = client.new_order_test(**params)
-
+    response = client.new_order(**params)
+    logging.debug(response)
 
 def handle_signal(signum, frame):
     # 在这里编写你想要触发的函数或操作
     # 清仓
     global position
     if position == 1:
-        do_order(COIN, Trade.SELL.value, 'MARKET',ORDER_AMOUNT)
+        do_order(COIN, Trade.SELL.value, 'MARKET', ORDER_AMOUNT)
         position = 0
     end_time = time.time()
     print("FINAL PROFIT:%f" % profit)
@@ -116,13 +118,18 @@ def handle_signal(signum, frame):
     logging.debug("closing ws connection")
     my_client.stop()
 
+    sys.exit()
+
 
 class Trade(enum.Enum):
     BUY = 'BUY'
     SELL = 'SELL'
 
+
 if __name__ == '__main__':
     # print_profit()
+    ip = get_current_proxy_ip()
+    print("当前代理 IP:", ip)
     # 注册信号处理程序ctrlz+c
     signal.signal(signal.SIGTSTP, handle_signal)
     signal.signal(signal.SIGINT, handle_signal)
