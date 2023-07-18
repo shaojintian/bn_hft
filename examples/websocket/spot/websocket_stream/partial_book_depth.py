@@ -12,8 +12,6 @@ config_logging(logging, logging.DEBUG)
 # 买入比例
 LOB_THRESHOLD = 0
 
-Balance = 10, 0000
-
 ORDER_AMOUNT = 0.01
 
 profit = 0
