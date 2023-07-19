@@ -10,6 +10,8 @@ from binance.lib.utils import config_logging
 from binance.websocket.spot.websocket_stream import SpotWebsocketStreamClient
 from binance.spot import Spot as Client
 from ip_search import get_current_proxy_ip
+from threading import Lock
+
 
 config_logging(logging, logging.ERROR)
 
@@ -26,67 +28,61 @@ position = 0
 
 buy_in_price = 0
 
+lock = Lock()
 
 def message_handler(_, message):
-    # print(message)
-    data_dict = json.loads(message)
-    # bids_quantities = sum([float(bid[1]) for bid in data_dict["bids"]])
-    # asks_quantities = sum([float(ask[1]) for ask in data_dict["asks"]])
-
-    bid_1 = float(data_dict["bids"][0][0])
-    ask_1 = float(data_dict["asks"][0][0])
-
-    # bid_1_quantity = float(data_dict["bids"][0][1])
-    # ask_1_quantity = float(data_dict["asks"][0][1])
-    # lob_now = bids_quantities / asks_quantities
-    # print(bids_quantities / asks_quantities)
     global buy_in_price, profit, position, ORDER_AMOUNT
+    with lock:
+        data_dict = json.loads(message)
 
-    # stop loss = 5-1000 * 0.01 = 0.05u-10u
-    is_shut_down = (buy_in_price - ask_1) > 1000
-    is_stop_loss = (buy_in_price - ask_1) > 5
+        bid_1 = float(data_dict["bids"][0][0])
+        ask_1 = float(data_dict["asks"][0][0])
 
-    if position == 0:
-        buy_in_price = bid_1
-        # float(data_dict["bids"][0][1])
-        # 下单
-        do_order(COIN, Trade.BUY.value, 'LIMIT', ORDER_AMOUNT, buy_in_price)
-        # print("BID BUY: price:%f amount:%f"% (buy_in_price, order_amount))
-        #
-        position = 1
-    elif position == 1 and ask_1 > buy_in_price:
-        # 下单止盈
-        # print("BID SELL: price:%f amount:%f"% (ask_1, order_amount))
-        do_order(COIN, Trade.SELL.value, 'LIMIT', ORDER_AMOUNT, ask_1)
-        profit += (ask_1 - buy_in_price) * ORDER_AMOUNT
-        #print("Profit:%f" % profit)
-        #
-        buy_in_price = 0
-        position = 0
-    elif position == 1 and is_shut_down:
-        # 下单停机
-        print("SHUTDOWN ON TRAILING ORDER: buy in:%f price:%f amount:%f！！！！！\n" % (
-            buy_in_price, ask_1, ORDER_AMOUNT))
-        do_order(COIN, Trade.SELL.value, 'LIMIT', ORDER_AMOUNT, ask_1)
-        profit += (ask_1 - buy_in_price) * ORDER_AMOUNT
-        # print("Profit:%f" % profit)
-        buy_in_price = 0
-        position = 0
-        # 停机
-        end_time = time.time()
-        print("------FINAL PROFIT-------:%f" % profit)
-        print("Expected profit per day is %f" % ((profit / ((end_time - start_time) / 60)) * 24 * 60))
-        logging.debug("closing ws connection")
-        my_client.stop()
-    elif position == 1 and is_stop_loss:
-        # 下单止损
-        # print("STOP LOSS ON TRAILING ORDER: buy in:%f price:%f amount:%f！！！！！\n" % (buy_in_price, ask_1, ORDER_AMOUNT))
-        # print("LOB RATIO IS: %f" % lob_now)
-        do_order(COIN, Trade.SELL.value, 'LIMIT', ORDER_AMOUNT, ask_1)
-        profit += (ask_1 - buy_in_price) * ORDER_AMOUNT
-        # print("Profit:%f" % profit)
-        buy_in_price = 0
-        position = 0
+        # stop loss = 5-1000 * 0.01 = 0.05u-10u
+        is_shut_down = (buy_in_price - ask_1) > 1000
+        is_stop_loss = (buy_in_price - ask_1) > 5
+
+        if position == 0:
+            buy_in_price = bid_1
+            # float(data_dict["bids"][0][1])
+            # 下单
+            do_order(COIN, Trade.BUY.value, 'LIMIT', ORDER_AMOUNT, buy_in_price)
+            # print("BID BUY: price:%f amount:%f"% (buy_in_price, order_amount))
+            #
+            position = 1
+        elif position == 1 and ask_1 > buy_in_price:
+            # 下单止盈
+            # print("BID SELL: price:%f amount:%f"% (ask_1, order_amount))
+            do_order(COIN, Trade.SELL.value, 'LIMIT', ORDER_AMOUNT, ask_1)
+            profit += (ask_1 - buy_in_price) * ORDER_AMOUNT
+            print("Profit:%f" % profit)
+            #
+            buy_in_price = 0
+            position = 0
+        elif position == 1 and is_shut_down:
+            # 下单停机
+            print("SHUTDOWN ON TRAILING ORDER: buy in:%f price:%f amount:%f！！！！！\n" % (
+                buy_in_price, ask_1, ORDER_AMOUNT))
+            do_order(COIN, Trade.SELL.value, 'LIMIT', ORDER_AMOUNT, ask_1)
+            profit += (ask_1 - buy_in_price) * ORDER_AMOUNT
+            # print("Profit:%f" % profit)
+            buy_in_price = 0
+            position = 0
+            # 停机
+            end_time = time.time()
+            print("------FINAL PROFIT-------:%f" % profit)
+            print("Expected profit per day is %f" % ((profit / ((end_time - start_time) / 60)) * 24 * 60))
+            logging.debug("closing ws connection")
+            my_client.stop()
+        elif position == 1 and is_stop_loss:
+            # 下单止损
+            # print("STOP LOSS ON TRAILING ORDER: buy in:%f price:%f amount:%f！！！！！\n" % (buy_in_price, ask_1, ORDER_AMOUNT))
+            # print("LOB RATIO IS: %f" % lob_now)
+            do_order(COIN, Trade.SELL.value, 'LIMIT', ORDER_AMOUNT, ask_1)
+            profit += (ask_1 - buy_in_price) * ORDER_AMOUNT
+            # print("Profit:%f" % profit)
+            buy_in_price = 0
+            position = 0
 
 
 # fuck this fuction
@@ -103,7 +99,7 @@ def do_order(symbol=COIN, side="SELL", _type='LIMIT', quantity=ORDER_AMOUNT, pri
     }
     logging.debug(params)
     try:
-        response = client.new_order(**params)
+        response = client.new_order_test(**params)
         logging.debug(response)
     except Exception as e:
         logging.error(params)
