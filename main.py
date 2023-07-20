@@ -31,8 +31,8 @@ buy_in_price = 0
 lock = Lock()
 
 def message_handler(_, message):
-    global buy_in_price, profit, position, ORDER_AMOUNT
     with lock:
+        global buy_in_price, profit, position, ORDER_AMOUNT
         data_dict = json.loads(message)
 
         bid_1 = float(data_dict["bids"][0][0])
@@ -99,7 +99,7 @@ def do_order(symbol=COIN, side="SELL", _type='LIMIT', quantity=ORDER_AMOUNT, pri
     }
     logging.debug(params)
     try:
-        response = client.new_order_test(**params)
+        response = client.new_order(**params)
         logging.debug(response)
     except Exception as e:
         logging.error(params)
@@ -148,7 +148,7 @@ if __name__ == '__main__':
     # 开始运行
     my_client = SpotWebsocketStreamClient(on_message=message_handler)
 
-    my_client.partial_book_depth(symbol=COIN, level=20, speed=100)
+    my_client.partial_book_depth(symbol=COIN, level=20, speed=1000)
 
     start_time = time.time()
 
