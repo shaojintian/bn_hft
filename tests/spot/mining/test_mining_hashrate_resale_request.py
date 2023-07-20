@@ -1,11 +1,11 @@
 import responses
 import pytest
 
-from binance.error import ParameterRequiredError
-from binance.lib.utils import encoded_string
+from docs.binance import ParameterRequiredError
+from docs.binance.lib.utils import encoded_string
 from tests.util import random_str
 from tests.util import mock_http_response
-from binance.spot import Spot as Client
+from docs.binance.spot import Spot as Client
 
 mock_item = {"key_1": "value_1", "key_2": "value_2"}
 

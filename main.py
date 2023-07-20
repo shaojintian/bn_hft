@@ -1,14 +1,13 @@
 #!/usr/bin/env python
 import sys
-import threading
 import signal
 import time
 import logging
 import json
 import enum
-from binance.lib.utils import config_logging
-from binance.websocket.spot.websocket_stream import SpotWebsocketStreamClient
-from binance.spot import Spot as Client
+from docs.binance.lib.utils import config_logging
+from docs.binance.websocket.spot.websocket_stream import SpotWebsocketStreamClient
+from docs.binance.spot import Spot as Client
 from ip_search import get_current_proxy_ip
 from threading import Lock
 

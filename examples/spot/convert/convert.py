@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 import logging
-from binance.spot import Spot
-from binance.lib.utils import config_logging
+from docs.binance.spot import Spot
+from docs.binance.lib.utils import config_logging
 from datetime import datetime
-from prepare_env import get_api_key
+from docs.prepare_env import get_api_key
 
 config_logging(logging, logging.DEBUG)
 

@@ -1,8 +1,8 @@
 import responses
 
-from binance.error import ParameterTypeError, ParameterArgumentError
+from docs.binance import ParameterTypeError, ParameterArgumentError
 from tests.util import mock_http_response
-from binance.spot import Spot as Client
+from docs.binance.spot import Spot as Client
 from urllib.parse import urlencode
 
 mock_item = {"key_1": "value_1", "key_2": "value_2"}

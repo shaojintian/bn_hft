@@ -1,5 +1,5 @@
-from binance.spot import Spot as Client
-from binance.error import ParameterTypeError, ParameterArgumentError
+from docs.binance.spot import Spot as Client
+from docs.binance import ParameterTypeError, ParameterArgumentError
 from urllib.parse import urlencode
 import responses
 

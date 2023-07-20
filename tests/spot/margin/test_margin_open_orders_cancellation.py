@@ -1,7 +1,7 @@
 import responses
 
-from binance.error import ParameterRequiredError
-from binance.spot import Spot as Client
+from docs.binance import ParameterRequiredError
+from docs.binance.spot import Spot as Client
 from tests.util import random_str
 from urllib.parse import urlencode
 from tests.util import mock_http_response

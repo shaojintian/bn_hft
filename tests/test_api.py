@@ -2,10 +2,10 @@ import responses
 
 import requests
 from tests.util import random_str, mock_http_response
-from binance.__version__ import __version__
-from binance.api import API
-from binance.error import ParameterRequiredError, ServerError
-from binance.error import ClientError
+from docs.binance.__version__ import __version__
+from docs.binance.api import API
+from docs.binance import ParameterRequiredError, ServerError
+from docs.binance import ClientError
 import logging
 
 mock_item = {"key_1": "value_1", "key_2": "value_2"}

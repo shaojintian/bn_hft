@@ -3,7 +3,7 @@ import responses
 from urllib.parse import urlencode
 from tests.util import random_str
 from tests.util import mock_http_response
-from binance.spot import Spot as Client
+from docs.binance.spot import Spot as Client
 
 mock_item = {"key_1": "value_1"}
 

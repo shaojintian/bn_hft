@@ -1,18 +1,18 @@
-from binance.error import (
+from docs.binance import (
     ParameterRequiredError,
     ParameterTypeError,
     ParameterValueError,
 )
-from binance.lib.utils import (
+from docs.binance.lib.utils import (
     check_required_parameter,
     check_type_parameter,
     convert_list_to_json_array,
     purge_map,
 )
-from binance.lib.utils import check_required_parameters
-from binance.lib.utils import check_enum_parameter
-from binance.lib.utils import encoded_string
-from binance.lib.enums import TransferType
+from docs.binance.lib.utils import check_required_parameters
+from docs.binance.lib.utils import check_enum_parameter
+from docs.binance.lib.utils import encoded_string
+from docs.binance.lib.enums import TransferType
 
 
 def test_pass_check_required_parameter():

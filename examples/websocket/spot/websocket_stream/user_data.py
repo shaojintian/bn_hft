@@ -2,10 +2,10 @@
 
 import time
 import logging
-from binance.lib.utils import config_logging
-from binance.spot import Spot as Client
-from binance.websocket.spot.websocket_stream import SpotWebsocketStreamClient
-from prepare_env import get_api_key
+from docs.binance.lib.utils import config_logging
+from docs.binance.spot import Spot as Client
+from docs.binance.websocket.spot.websocket_stream import SpotWebsocketStreamClient
+from docs.prepare_env import get_api_key
 
 api_key, api_secret = get_api_key()
 

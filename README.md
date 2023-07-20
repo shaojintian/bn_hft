@@ -30,8 +30,9 @@ pip install binance-connector
 ## RESTful APIs
 
 Usage examples:
+
 ```python
-from binance.spot import Spot
+from docs.binance.spot import Spot
 
 client = Spot()
 
@@ -111,8 +112,9 @@ Please find `examples/spot/trade/get_account.py` for more details on RSA.
 - Steps to setup testnet API key.  [https://dev.binance.vision/t/99](https://dev.binance.vision/t/99)
 
 To use testnet:
+
 ```python
-from binance.spot import Spot as Client
+from docs.binance.spot import Spot as Client
 
 client = Client(base_url='https://testnet.binance.vision')
 print(client.time())
@@ -147,7 +149,7 @@ It defaults to `5000` (milliseconds) and can be any value lower than `60000`(mil
 Anything beyond the limit will result in an error response from Binance server.
 
 ```python
-from binance.spot import Spot as Client
+from docs.binance.spot import Spot as Client
 
 client = Client(api_key, api_secret)
 response = client.get_order('BTCUSDT', orderId=11, recvWindow=10000)
@@ -160,9 +162,9 @@ Please remember the value as it won't be shown in error message _no bytes have b
 By default, `timeout` is None. Hence, requests do not time out.
 
 ```python
-from binance.spot import Spot as Client
+from docs.binance.spot import Spot as Client
 
-client= Client(timeout=1)
+client = Client(timeout=1)
 ```
 
 ### Proxy
@@ -170,11 +172,11 @@ client= Client(timeout=1)
 Proxy is supported.
 
 ```python
-from binance.spot import Spot as Client
+from docs.binance.spot import Spot as Client
 
-proxies = { 'https': 'http://1.2.3.4:8080' }
+proxies = {'https': 'http://1.2.3.4:8080'}
 
-client= Client(proxies=proxies)
+client = Client(proxies=proxies)
 ```
 
 
@@ -184,7 +186,7 @@ The Binance API server provides weight usages in the headers of each response.
 You can display them by initializing the client with `show_limit_usage=True`:
 
 ```python
-from binance.spot import Spot as Client
+from docs.binance.spot import Spot as Client
 
 client = Client(show_limit_usage=True)
 print(client.time())
@@ -239,10 +241,12 @@ WebSocket can be established through either of the following types of connection
 ```python
 
 # WebSocket API Client
-from binance.websocket.spot.websocket_api import SpotWebsocketAPIClient
+from docs.binance.websocket import SpotWebsocketAPIClient
+
 
 def message_handler(_, message):
     logging.info(message)
+
 
 my_client = SpotWebsocketAPIClient(on_message=message_handler)
 
@@ -256,10 +260,12 @@ my_client.stop()
 ```python
 
 # WebSocket Stream Client
-from binance.websocket.spot.websocket_stream import SpotWebsocketStreamClient
+from docs.binance.websocket.spot.websocket_stream import SpotWebsocketStreamClient
+
 
 def message_handler(_, message):
     logging.info(message)
+
 
 my_client = SpotWebsocketStreamClient(on_message=message_handler)
 
@@ -293,10 +299,12 @@ Example file "examples/websocket_api/app_demo.py" demonstrates how Websocket API
 ### Connector v1 and v2
 
 ```python
-from binance.websocket.spot.websocket_client import SpotWebsocketClient as WebsocketClient
+from docs.binance import SpotWebsocketClient as WebsocketClient
+
 
 def message_handler(message):
     print(message)
+
 
 ws_client = WebsocketClient()
 ws_client.start()
@@ -324,7 +332,7 @@ a 10 minutes period. This package handles the pong responses automatically.
 ### Testnet
 
 ```python
-from binance.websocket.spot.websocket_client import SpotWebsocketClient as WebsocketClient
+from docs.binance import SpotWebsocketClient as WebsocketClient
 
 ws_client = WebsocketClient(stream_url='wss://testnet.binance.vision')
 ```

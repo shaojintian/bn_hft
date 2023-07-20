@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
 import logging
-from binance.lib.utils import config_logging
-from binance.spot import Spot as Client
-from prepare_env import get_api_key
+from docs.binance.lib.utils import config_logging
+from docs.binance.spot import Spot as Client
+from docs.prepare_env import get_api_key
 
 config_logging(logging, logging.DEBUG)
 

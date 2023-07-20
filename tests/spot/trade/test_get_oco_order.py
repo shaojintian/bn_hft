@@ -1,10 +1,10 @@
 import responses
 
-from binance.spot import Spot as Client
+from docs.binance.spot import Spot as Client
 from tests.util import random_str
 from tests.util import random_id
 from tests.util import mock_http_response
-from binance.error import ClientError
+from docs.binance import ClientError
 
 mock_item = {"key_1": "value_1", "key_2": "value_2"}
 mock_exception = {"code": -1, "msg": "error message"}

@@ -1,4 +1,4 @@
-from binance.spot import Spot as Client
+from docs.binance.spot import Spot as Client
 import responses
 
 from tests.util import random_str
