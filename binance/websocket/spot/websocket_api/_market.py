@@ -1,5 +1,5 @@
-from docs.binance.lib.utils import get_uuid, purge_map
-from docs.binance.error import ParameterArgumentError
+from binance.lib.utils import get_uuid, purge_map
+from binance.error import ParameterArgumentError
 
 
 def ping_connectivity(self, id=None):

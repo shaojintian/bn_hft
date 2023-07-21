@@ -1,6 +1,6 @@
-from docs.binance.lib.utils import check_required_parameter
-from docs.binance.lib.utils import check_required_parameters
-from docs.binance.error import ParameterArgumentError
+from binance.lib.utils import check_required_parameter
+from binance.lib.utils import check_required_parameters
+from binance.error import ParameterArgumentError
 
 
 def margin_transfer(self, asset: str, amount, type: int, **kwargs):

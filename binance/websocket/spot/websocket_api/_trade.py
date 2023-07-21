@@ -1,4 +1,4 @@
-from docs.binance.lib.utils import get_uuid, purge_map, websocket_api_signature
+from binance.lib.utils import get_uuid, purge_map, websocket_api_signature
 
 
 def new_order(self, symbol: str, side: str, type: str, **kwargs):

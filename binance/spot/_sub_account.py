@@ -1,5 +1,5 @@
-from docs.binance.lib.utils import check_required_parameter
-from docs.binance.lib.utils import check_required_parameters
+from binance.lib.utils import check_required_parameter
+from binance.lib.utils import check_required_parameters
 
 
 def sub_account_create(self, subAccountString: str, **kwargs):

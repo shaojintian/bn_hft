@@ -1,7 +1,7 @@
 import json
 import logging
-from docs.binance.lib.utils import get_timestamp
-from docs.binance.websocket.binance_socket_manager import BinanceSocketManager
+from binance.lib.utils import get_timestamp
+from binance.websocket.binance_socket_manager import BinanceSocketManager
 
 
 class BinanceWebsocketClient:

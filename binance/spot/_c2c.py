@@ -1,4 +1,4 @@
-from docs.binance.lib.utils import check_required_parameter
+from binance.lib.utils import check_required_parameter
 
 
 def c2c_trade_history(self, tradeType: str, **kwargs):

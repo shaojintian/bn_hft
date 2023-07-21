@@ -1,4 +1,4 @@
-from docs.binance.lib.utils import check_required_parameters
+from binance.lib.utils import check_required_parameters
 
 
 def bswap_pools(self):

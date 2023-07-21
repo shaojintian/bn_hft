@@ -1,4 +1,4 @@
-from docs.binance.lib.utils import check_required_parameter, check_required_parameters
+from binance.lib.utils import check_required_parameter, check_required_parameters
 
 
 def new_listen_key(self):

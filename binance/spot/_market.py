@@ -1,10 +1,10 @@
-from docs.binance.error import ParameterArgumentError
-from docs.binance.lib.utils import (
+from binance.error import ParameterArgumentError
+from binance.lib.utils import (
     check_required_parameter,
     check_type_parameter,
     convert_list_to_json_array,
 )
-from docs.binance.lib.utils import check_required_parameters
+from binance.lib.utils import check_required_parameters
 
 
 def ping(self):

@@ -1,4 +1,4 @@
-from docs.binance.websocket.websocket_client import BinanceWebsocketClient
+from binance.websocket.websocket_client import BinanceWebsocketClient
 
 
 class SpotWebsocketStreamClient(BinanceWebsocketClient):

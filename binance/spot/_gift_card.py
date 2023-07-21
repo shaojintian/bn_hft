@@ -1,4 +1,4 @@
-from docs.binance.lib.utils import check_required_parameters, check_required_parameter
+from binance.lib.utils import check_required_parameters, check_required_parameter
 
 
 def gift_card_create_code(self, token: str, amount: float, **kwargs):

@@ -1,7 +1,7 @@
-from docs.binance.lib.utils import check_required_parameter
-from docs.binance.lib.utils import check_required_parameters
-from docs.binance.lib.utils import check_enum_parameter
-from docs.binance.lib.enums import TransferType
+from binance.lib.utils import check_required_parameter
+from binance.lib.utils import check_required_parameters
+from binance.lib.utils import check_enum_parameter
+from binance.lib.enums import TransferType
 
 
 def system_status(self):

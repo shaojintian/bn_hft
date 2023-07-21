@@ -1,7 +1,7 @@
-from docs.binance.lib.utils import (
+from binance.lib.utils import (
     check_required_parameter,
 )
-from docs.binance.lib.utils import check_required_parameters
+from binance.lib.utils import check_required_parameters
 
 
 def staking_product_list(self, product: str, **kwargs):

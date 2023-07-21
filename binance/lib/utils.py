@@ -3,8 +3,8 @@ import time
 import uuid
 from collections import OrderedDict
 from urllib.parse import urlencode
-from docs.binance.lib.authentication import hmac_hashing
-from docs.binance.error import (
+from binance.lib.authentication import hmac_hashing
+from binance.error import (
     ParameterRequiredError,
     ParameterValueError,
     ParameterTypeError,

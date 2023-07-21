@@ -1,4 +1,4 @@
-from docs.binance.lib.utils import check_required_parameters, check_required_parameter
+from binance.lib.utils import check_required_parameters, check_required_parameter
 
 
 def loan_history(self, asset: str, **kwargs):

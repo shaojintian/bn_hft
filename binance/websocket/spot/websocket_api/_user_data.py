@@ -1,4 +1,4 @@
-from docs.binance.lib.utils import get_uuid
+from binance.lib.utils import get_uuid
 
 
 def user_data_start(self, id=None):

@@ -1,4 +1,4 @@
-from docs.binance.lib.utils import check_required_parameters
+from binance.lib.utils import check_required_parameters
 
 
 def convert_trade_history(self, startTime: int, endTime: int, **kwargs):

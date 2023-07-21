@@ -2,13 +2,13 @@ import json
 from json import JSONDecodeError
 import logging
 import requests
-from binance.__version__ import __version__
-from docs.binance.error import ClientError, ServerError
-from docs.binance.lib.utils import get_timestamp
-from docs.binance.lib.utils import cleanNoneValue
-from docs.binance.lib.utils import encoded_string
-from docs.binance.lib.utils import check_required_parameter
-from docs.binance.lib.authentication import hmac_hashing, rsa_signature, ed25519_signature
+from .__version__ import __version__
+from binance.error import ClientError, ServerError
+from binance.lib.utils import get_timestamp
+from binance.lib.utils import cleanNoneValue
+from binance.lib.utils import encoded_string
+from binance.lib.utils import check_required_parameter
+from binance.lib.authentication import hmac_hashing, rsa_signature, ed25519_signature
 
 
 class API(object):

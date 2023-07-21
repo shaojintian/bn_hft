@@ -1,5 +1,5 @@
-from docs.binance.lib.utils import check_required_parameter
-from docs.binance.lib.utils import check_required_parameters
+from binance.lib.utils import check_required_parameter
+from binance.lib.utils import check_required_parameters
 
 
 def savings_flexible_products(self, **kwargs):

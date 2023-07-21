@@ -1,4 +1,4 @@
-from docs.binance.lib.utils import check_required_parameter
+from binance.lib.utils import check_required_parameter
 
 
 def nft_transaction_history(self, orderType: int, **kwargs):
