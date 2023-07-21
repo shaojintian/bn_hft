@@ -50,7 +50,7 @@ def message_handler():
         data_dict = client.depth(symbol=COIN, limit=100)
 
         bid_1 = float(data_dict["bids"][10][0])
-        ask_1 = float(data_dict["asks"][50][0])
+        ask_1 = float(data_dict["asks"][10][0])
         # 监控order book imbalance
         bid_quantity = sum(float(row[1]) for row in data_dict["bids"])
         ask_quantity = sum(float(row[1]) for row in data_dict["asks"])
@@ -63,17 +63,17 @@ def message_handler():
         is_stop_loss = (buy_in_price - ask_1) > 100
 
         # buy_in signal
-        buy_in_signal = obi > 2.5
+        buy_in_signal = obi > 2
         # print(buy_in_signal)
         if position == 0 and buy_in_signal:
             # 下单
-            print("BID BUY: price:%f amount:%f" % (bid_1, ORDER_AMOUNT))
             success = do_order(COIN, Trade.BUY.value, 'LIMIT', ORDER_AMOUNT, bid_1)
             if not success:
                 logging.debug("下单失败重新下: price:%f amount:%f" % (buy_in_price, ORDER_AMOUNT))
                 return
             position = 1
             buy_in_price = bid_1
+            print("BID BUY: price:%f amount:%f" % (bid_1, ORDER_AMOUNT))
             time.sleep(INTERVAL)
         elif position == 1 and ask_1 > buy_in_price:
             # 下单止盈
@@ -208,8 +208,8 @@ class Trade(enum.Enum):
 if __name__ == '__main__':
     INTERVAL = int(input("Please enter the interval between price changes in seconds (default=3): "))
     # print_profit()
-    # ip = get_current_proxy_ip()
-    # print("当前代理 IP:", ip)
+    ip = get_current_proxy_ip()
+    print("当前代理 IP:", ip)
     # 注册信号处理程序ctrlz+c
     signal.signal(signal.SIGTSTP, handle_signal)
     # signal.signal(signal.SIGINT, handle_signal)
