@@ -171,8 +171,8 @@ def handle_signal(signum, frame):
         position = 0
     end_time = time.time()
 
-    plot_monitor_metrics(obis,"order book imbalance")
-    plot_monitor_metrics(obis_reverse,"oder book  imbalance reverse")
+    # plot_monitor_metrics(obis,"order book imbalance")
+    # plot_monitor_metrics(obis_reverse,"oder book  imbalance reverse")
     # 统计PRICE_CHANGE_AFTER_SIGNAL_DELAY
     negative_count = sum(1 for change in PRICE_CHANGE_AFTER_SIGNAL_DELAY if change < 0)
     # 计算小于0的比例
