@@ -74,7 +74,7 @@ def message_handler():
             position = 1
             buy_in_price = bid_1
             print("BID BUY: price:%f amount:%f" % (bid_1, ORDER_AMOUNT))
-            time.sleep(INTERVAL)
+            #time.sleep(INTERVAL)
         elif position == 1 and ask_1 > buy_in_price:
             # 下单止盈
             # print("BID SELL: price:%f amount:%f"% (ask_1, order_amount))
@@ -89,7 +89,7 @@ def message_handler():
             PRICE_CHANGE_AFTER_SIGNAL_DELAY.append(ask_1 - buy_in_price)
             position = 0
             buy_in_price = 0
-            time.sleep(INTERVAL)
+            #time.sleep(INTERVAL)
         elif position == 1 and is_shut_down:
             # 下单停机
             print("SHUTDOWN ON TRAILING ORDER: buy in:%f price:%f amount:%f！！！！！\n" % (
@@ -222,7 +222,7 @@ if __name__ == '__main__':
     # 开始运行
     while True:
         message_handler()
-        #time.sleep(INTERVAL)
+        time.sleep(INTERVAL)
 
     #
     # logging.debug("closing ws connection")
