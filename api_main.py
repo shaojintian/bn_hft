@@ -34,7 +34,7 @@ profit = 0
 
 position = 0
 
-buy_in_price = 0
+buy_in_price = 0.0
 
 #
 lock = Lock()
@@ -44,7 +44,7 @@ lock = Lock()
 obis = []
 obis_reverse = []
 # 记录买入信号10s后的价格delta
-PRICE_CHANGE_AFTER_SIGNAL_DELAY = [0]
+PRICE_CHANGE_AFTER_SIGNAL_DELAY = [0.0]
 
 
 def message_handler():
