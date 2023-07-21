@@ -53,7 +53,7 @@ def message_handler():
         data_dict = client.depth(symbol=COIN, limit=50)
 
         bid_1 = float(data_dict["bids"][5][0])
-        ask_1 = float(data_dict["asks"][10][0])
+        ask_1 = float(data_dict["asks"][5][0])
         # 监控order book imbalance
         bid_quantity = sum(float(row[1]) for row in data_dict["bids"])
         ask_quantity = sum(float(row[1]) for row in data_dict["asks"])
@@ -66,7 +66,7 @@ def message_handler():
         is_stop_loss = (buy_in_price - ask_1) > 100
 
         # buy_in signal
-        print(obi)
+        # print(obi)
         buy_in_signal = obi > OBI_THREHOLD
         # print(buy_in_signal)
         if position == 0 and buy_in_signal:
