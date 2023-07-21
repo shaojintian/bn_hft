@@ -206,7 +206,7 @@ class Trade(enum.Enum):
 
 
 if __name__ == '__main__':
-    INTERVAL = int(input("Please enter the interval between price changes in seconds (default=3): "))
+    INTERVAL = float(input("Please enter the interval between price changes in seconds (default=3): "))
     # print_profit()
     ip = get_current_proxy_ip()
     print("当前代理 IP:", ip)
