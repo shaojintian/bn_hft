@@ -15,10 +15,13 @@ import matplotlib.pyplot as plt
 config_logging(logging, logging.ERROR)
 
 USDCNY = 7.1
-INTERVAL = 0
+INTERVAL = 0.1
 
 #撤单率
 CANCEL_RATE = 0.0
+
+#
+OBI_THREHOLD = 1.5
 
 # 买入比例
 LOB_THRESHOLD = 0
@@ -63,7 +66,8 @@ def message_handler():
         is_stop_loss = (buy_in_price - ask_1) > 100
 
         # buy_in signal
-        buy_in_signal = obi > 2
+        print(OBI_THREHOLD)
+        buy_in_signal = obi > OBI_THREHOLD
         # print(buy_in_signal)
         if position == 0 and buy_in_signal:
             # 下单
@@ -206,7 +210,7 @@ class Trade(enum.Enum):
 
 
 if __name__ == '__main__':
-    INTERVAL = float(input("Please enter the interval between price changes in seconds (default=3): "))
+    OBI_THREHOLD = float(input("Please enter the interval between price changes in seconds (default=3): "))
     # print_profit()
     ip = get_current_proxy_ip()
     print("当前代理 IP:", ip)
