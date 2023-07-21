@@ -140,7 +140,7 @@ def do_order(symbol=COIN, side="SELL", _type='LIMIT', quantity=ORDER_AMOUNT, pri
         'timeInForce': 'GTC',
         'quantity': quantity,
         'price': price,
-        'newOrderRespType': 'ACK',  # ACK
+        'newOrderRespType': 'FULL',  # ACK
     }
     logging.debug(params)
     try:
