@@ -149,7 +149,8 @@ def do_order(symbol=COIN, side="SELL", _type='LIMIT', quantity=ORDER_AMOUNT, pri
         response = client.get_order(symbol=symbol, orderId=int(response['orderId']))
         # print(response)
         if response.get('status') == 'PARTIALLY_FILLED':
-            residual_quantity = response.get('executedQty')
+            residual_quantity = float(response.get('executedQty'))
+            logging.debug("Partially filled. Residual quantity:%f" % residual_quantity)
             return do_order(symbol=symbol, side=side, _type="LIMIT", quantity=quantity-residual_quantity, price=price)
         elif response.get('status') != 'FILLED':
             client.cancel_open_orders(symbol=symbol)
