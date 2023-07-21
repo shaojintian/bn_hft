@@ -52,7 +52,7 @@ def message_handler():
         global buy_in_price, profit, position, ORDER_AMOUNT, obi_amount, obi_sum, obis, SIGNAL
         data_dict = client.depth(symbol=COIN, limit=50)
 
-        bid_1 = float(data_dict["bids"][1][0])
+        bid_1 = float(data_dict["bids"][2][0])
         ask_1 = float(data_dict["asks"][1][0])
         # 监控order book imbalance
         bid_quantity = sum(float(row[1]) for row in data_dict["bids"])
@@ -79,7 +79,7 @@ def message_handler():
             buy_in_price = bid_1
             print("BID BUY: price:%f amount:%f" % (bid_1, ORDER_AMOUNT))
             #time.sleep(INTERVAL)
-        elif position == 1 and ask_1 > buy_in_price:
+        elif position == 1 :
             # 下单止盈
             # print("BID SELL: price:%f amount:%f"% (ask_1, order_amount))
             success = do_order(COIN, Trade.SELL.value, 'LIMIT', ORDER_AMOUNT, ask_1)
