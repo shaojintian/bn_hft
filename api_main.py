@@ -141,7 +141,7 @@ def do_order(symbol=COIN, side="SELL", _type='LIMIT', quantity=ORDER_AMOUNT, pri
     logging.debug(params)
     try:
         response = client.new_order(**params)
-        time.sleep(3)
+        time.sleep(1)
         response = client.get_order(symbol=symbol, orderId=int(response['orderId']))
         # print(response)
         if response.get('status') == 'PARTIALLY_FILLED':
