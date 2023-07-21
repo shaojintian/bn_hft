@@ -52,8 +52,8 @@ def message_handler():
         global buy_in_price, profit, position, ORDER_AMOUNT, obi_amount, obi_sum, obis, SIGNAL
         data_dict = client.depth(symbol=COIN, limit=50)
 
-        bid_1 = float(data_dict["bids"][1][0])
-        ask_1 = float(data_dict["asks"][1][0])
+        bid_1 = float(data_dict["bids"][5][0])
+        ask_1 = float(data_dict["asks"][0][0])
         # 监控order book imbalance
         bid_quantity = sum(float(row[1]) for row in data_dict["bids"])
         ask_quantity = sum(float(row[1]) for row in data_dict["asks"])
@@ -148,12 +148,12 @@ def do_order(symbol=COIN, side="SELL", _type='LIMIT', quantity=ORDER_AMOUNT, pri
         time.sleep(3)
         response = client.get_order(symbol=symbol, orderId=int(response['orderId']))
         # print(response)
-        if response.get('status') == 'PARTIALLY_FILLED':
-            residual_quantity = float(response.get('executedQty'))
-            logging.debug("Partially filled. Residual quantity:%f" % residual_quantity)
+        if response.get('status') == 'PARTIALLY_FILLED' and side == Trade.SELL.value:
+            # residual_quantity = float(response.get('executedQty'))
+            # logging.debug("Partially filled. Residual quantity:%f" % residual_quantity)
             client.cancel_open_orders(symbol=symbol)
-            logging.error("未完全成交撤单")
-            return do_order(symbol=symbol, side=side, _type="LIMIT", quantity=quantity-residual_quantity, price=price)
+            logging.error("未完全卖出撤单")
+            return
         elif response.get('status') != 'FILLED':
             client.cancel_open_orders(symbol=symbol)
             logging.error("未成交撤单")
