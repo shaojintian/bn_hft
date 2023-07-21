@@ -26,7 +26,7 @@ OBI_THRESHOLD = 2
 # 买入比例
 LOB_THRESHOLD = 0
 
-COIN = "BTCTUSD"
+COIN = "BTCUSDT"
 
 ORDER_AMOUNT = 0.01
 
@@ -42,18 +42,25 @@ lock = Lock()
 # 监控: orderbook imbalance, tradeflow imbalance , 大单异动，链上数据
 # 归一化后做个公式然后打分
 obis = []
+obis1 = []
+obis2 = []
+obis3 = []
 obis_reverse = []
 # 记录买入信号10s后的价格delta
-PRICE_CHANGE_AFTER_SIGNAL_DELAY = [0]
+PRICE_CHANGE_AFTER_SIGNAL_DELAY = [0.0]
 
 
 def message_handler():
     with lock:
         global buy_in_price, profit, position, ORDER_AMOUNT, obi_amount, obi_sum, obis, SIGNAL
         data_dict = client.depth(symbol=COIN, limit=100)
+        data_dict1 = client.depth(symbol=COIN, limit=500)
+        data_dict2 = client.depth(symbol=COIN, limit=1000)
+        data_dict3 = client.depth(symbol=COIN, limit=5000)
 
-        bid_1 = float(data_dict["bids"][5][0])
-        ask_1 = float(data_dict["asks"][10][0])
+
+        bid_1 = float(data_dict["bids"][1][0])
+        ask_1 = float(data_dict["asks"][1][0])
         # 监控order book imbalance
         bid_quantity = sum(float(row[1]) for row in data_dict["bids"])
         ask_quantity = sum(float(row[1]) for row in data_dict["asks"])
@@ -175,17 +182,20 @@ def handle_signal(signum, frame):
         position = 0
     end_time = time.time()
 
-    # plot_monitor_metrics(obis,"order book imbalance")
-    # plot_monitor_metrics(obis_reverse,"oder book  imbalance reverse")
-    # 统计PRICE_CHANGE_AFTER_SIGNAL_DELAY
-    negative_count = sum(1 for change in PRICE_CHANGE_AFTER_SIGNAL_DELAY if change < 0)
-    # 计算小于0的比例
-    negative_ratio = negative_count / len(PRICE_CHANGE_AFTER_SIGNAL_DELAY)
-    print("\n%ds后亏损的比例为: %.2f%%，交易次数%d\n" %(INTERVAL,negative_ratio*100,len(PRICE_CHANGE_AFTER_SIGNAL_DELAY)))
-    print("------FINAL PROFIT-------:%f" % profit)
-    profit_per_day = (profit / ((end_time - start_time) / 60)) * 24 * 60
-    profit_per_month = profit_per_day * 30 * USDCNY
-    print("Expected profit/day is %du, profit/month is %d元" % (profit_per_day, profit_per_month))
+    plot_monitor_metrics(obis,"order book imbalance 100")
+    plot_monitor_metrics(obis1,"order book imbalance 500")
+    plot_monitor_metrics(obis2,"order book imbalance 1000")
+    plot_monitor_metrics(obis3,"order book imbalance 5000")
+    #plot_monitor_metrics(obis_reverse,"oder book  imbalance reverse")
+    # # 统计PRICE_CHANGE_AFTER_SIGNAL_DELAY
+    # negative_count = sum(1 for change in PRICE_CHANGE_AFTER_SIGNAL_DELAY if change < 0)
+    # # 计算小于0的比例
+    # negative_ratio = negative_count / len(PRICE_CHANGE_AFTER_SIGNAL_DELAY)
+    # print("\n%ds后亏损的比例为: %.2f%%，交易次数%d\n" %(INTERVAL,negative_ratio*100,len(PRICE_CHANGE_AFTER_SIGNAL_DELAY)))
+    # print("------FINAL PROFIT-------:%f" % profit)
+    # profit_per_day = (profit / ((end_time - start_time) / 60)) * 24 * 60
+    # profit_per_month = profit_per_day * 30 * USDCNY
+    # print("Expected profit/day is %du, profit/month is %d元" % (profit_per_day, profit_per_month))
 
     # logging.debug("closing ws connection")
     # my_client.stop()
@@ -195,22 +205,50 @@ def handle_signal(signum, frame):
 
 def plot_monitor_metrics(x,title):
     # 绘制监控图像
-    plt.hist(x, bins=20, edgecolor='black')  # bins参数决定直方图的箱数
-    plt.xticks(range(20))
+    plt.hist(x, bins=10, edgecolor='black')  # bins参数决定直方图的箱数
+    plt.xticks(range(10))
     plt.title(title)
     plt.xlabel("OBI")
     plt.ylabel('Frequency')
-    # 显示图形
-    plt.show()
+    #save to file
+    save_path = f'/Users/jintianv/Desktop/sample_obi/{title}.png'  # Specify the full path including the file extension (.png, .jpg, etc.)
+    plt.savefig(save_path)
 
 
 class Trade(enum.Enum):
     BUY = 'BUY'
     SELL = 'SELL'
 
+def sampling_lob_info():
+    data_dict = client.depth(symbol=COIN, limit=100)
+    data_dict1 = client.depth(symbol=COIN, limit=500)
+    data_dict2 = client.depth(symbol=COIN, limit=1000)
+    data_dict3 = client.depth(symbol=COIN, limit=5000)
+
+    bid_quantity = sum(float(row[1]) for row in data_dict["bids"])
+    ask_quantity = sum(float(row[1]) for row in data_dict["asks"])
+    obi = bid_quantity / ask_quantity
+    obis.append(obi)
+
+    bid_quantity = sum(float(row[1]) for row in data_dict1["bids"])
+    ask_quantity = sum(float(row[1]) for row in data_dict1["asks"])
+    obi = bid_quantity / ask_quantity
+    obis1.append(obi)
+
+    bid_quantity = sum(float(row[1]) for row in data_dict2["bids"])
+    ask_quantity = sum(float(row[1]) for row in data_dict2["asks"])
+    obi = bid_quantity / ask_quantity
+    obis2.append(obi)
+
+    bid_quantity = sum(float(row[1]) for row in data_dict3["bids"])
+    ask_quantity = sum(float(row[1]) for row in data_dict3["asks"])
+    obi = bid_quantity / ask_quantity
+    obis3.append(obi)
+
+    print(1)
 
 if __name__ == '__main__':
-    OBI_THRESHOLD = float(input("Please enter the interval between price changes in seconds (default=2): "))
+    #OBI_THRESHOLD = float(input("Please enter the interval between price changes in seconds (default=2): "))
     # print_profit()
     ip = get_current_proxy_ip()
     print("当前代理 IP:", ip)
@@ -221,12 +259,11 @@ if __name__ == '__main__':
     # 获取账号:ip_search.py
     client = Client(api_key='Ng4rh2vG90dbfjVXPAzRYPaLpGcWXuSTcxZqmNKtEXyvl1iqwUKeRG6PPqfdUkDZ',
                     api_secret='XxExX9qAXtvKE0aAiP4CiFer8qnF4sxlcoXLNCMFFu7CfTMi95SyOS82I2a5QAVc')
-    logging.debug(client.user_asset())
-    start_time = time.time()
+    #start_time = time.time()
     # 开始运行
     while True:
-        message_handler()
-        time.sleep(INTERVAL)
+        sampling_lob_info()
+        time.sleep(3)
 
     #
     # logging.debug("closing ws connection")
