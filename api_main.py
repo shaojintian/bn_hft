@@ -49,7 +49,7 @@ def message_handler():
         global buy_in_price, profit, position, ORDER_AMOUNT, obi_amount, obi_sum, obis, SIGNAL
         data_dict = client.depth(symbol=COIN, limit=100)
 
-        bid_1 = float(data_dict["bids"][10][0])
+        bid_1 = float(data_dict["bids"][5][0])
         ask_1 = float(data_dict["asks"][10][0])
         # 监控order book imbalance
         bid_quantity = sum(float(row[1]) for row in data_dict["bids"])
