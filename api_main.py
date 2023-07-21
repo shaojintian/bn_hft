@@ -66,7 +66,7 @@ def message_handler():
         is_stop_loss = (buy_in_price - ask_1) > 100
 
         # buy_in signal
-        print(OBI_THREHOLD)
+        print(obi)
         buy_in_signal = obi > OBI_THREHOLD
         # print(buy_in_signal)
         if position == 0 and buy_in_signal:
