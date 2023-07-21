@@ -50,7 +50,7 @@ PRICE_CHANGE_AFTER_SIGNAL_DELAY = [0]
 def message_handler():
     with lock:
         global buy_in_price, profit, position, ORDER_AMOUNT, obi_amount, obi_sum, obis, SIGNAL
-        data_dict = client.depth(symbol=COIN, limit=100)
+        data_dict = client.depth(symbol=COIN, limit=50)
 
         bid_1 = float(data_dict["bids"][5][0])
         ask_1 = float(data_dict["asks"][10][0])
