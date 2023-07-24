@@ -167,7 +167,7 @@ class LeeksReaper():
         bear = False
         tradeAmount = 0
         # 判断self.account是否为真
-        if (self.account):
+        if self.account:
             # 是真的话就调用LogStatus函数并传入相应的参数
             LogStatus(self.account, 'Tick:', self.numTick, ', lastPrice:', self.prices[-1], ', burstPrice: ',
                       burstPrice, ",收割机当前启动次数:", self.sgnum)
@@ -243,7 +243,7 @@ class LeeksReaper():
                     # 调用self的updateOrderBook方法
                     self.updateOrderBook()
                     # 判断是否为true,如果时就进行循环
-                    while (bull and self.bidPrice - tradePrice > 0.1):
+                    while bull and self.bidPrice - tradePrice > 0.1:
                         # 赋值
                         tradeAmount *= 0.99
                         tradePrice += 0.1
@@ -260,7 +260,7 @@ class LeeksReaper():
 def main():
     # reaper 是构造函数的实例
     reaper = LeeksReaper()
-    while (True):
+    while True:
         # 通过实例调用poll方法
         reaper.poll()
-        Sleep(TickInterval)
+        time.sleep(TickInterval)
