@@ -8,16 +8,22 @@ exchanges: [{"eid":"Binance","currency":"XRP_USDT","stocks":0},{"eid":"Binance",
 
 import time
 
-ORDERID = []
-ORDERUNIX = []
+ORDERIDs = []
+ORDERUNIXs = []
 
 def init():
+    global ORDERIDs,ORDERUNIXs
     l = len(exchanges)
-    ORDERID = [-1] * l
-    ORDERUNIX = [-1] * l
+    Log("币对数量: ",l)
+    ORDERIDs = [-1] * l
+    ORDERUNIXs = [-1] * l
 
-def trade(exchange):
-    global ORDERID,ORDERUNIX
+def trade(i):
+    global ORDERIDs,ORDERUNIXs
+    ORDERID = ORDERIDs[i]
+    ORDERUNIX = ORDERUNIXs[i]
+    exchange = exchanges[i]
+    #
     records = _C(exchange.GetRecords)
     #Log("k线数量",len(records))
     if len(records) < 10*24:
@@ -42,19 +48,19 @@ def trade(exchange):
         #等会再买,防止冲击了
         tick = _C(exchange.GetTicker)
         price = tick["Sell"]
-        orderid= exchange.Buy(price,_N(balance*0.9/price,0))
+        ORDERID= exchange.Buy(price,_N(balance*0.9/price,0))
         #挂单成功
         Sleep(15*60*1000)
         #如果没买入成功，就撤单
-        order = _C(exchange.GetOrder,orderid)
+        order = _C(exchange.GetOrder,ORDERID)
         if order["DealAmount"] == 0:
-            is_cancled = exchange.CancelOrder(orderid)
+            is_cancled = exchange.CancelOrder(ORDERID)
             if is_cancled:
-                Log(_D(),price,"orderid: ",orderid,"撤单买入成功!!!")
+                Log(_D(),price,"ORDERID: ",ORDERID,"撤单买入成功!!!")
                 return
-        ORDERID = orderid
-        ORDERUNIX = Unix()
-        Log(_D(),price,"orderid: ",orderid,"买入成功!!!")
+        ORDERIDs[i] = ORDERID
+        ORDERUNIXs[i] = Unix()
+        Log("买入成功!!!",exchange.GetCurrency(),price,"ORDERID: ",ORDERID)
 def stopLoss():
     return
 
@@ -70,8 +76,12 @@ def mean_volume(records):
 def max_price(records):
     return max(r["High"] for r in records)
 
-def is_exit_position(exchange):
-    global ORDERID,ORDERUNIX
+def is_exit_position(i):
+    global ORDERIDs,ORDERUNIXs
+    ORDERID = ORDERIDs[i]
+    ORDERUNIX = ORDERUNIXs[i]
+    exchange = exchanges[i]
+    #
     if ORDERID == -1:
         return
     order = _C(exchange.GetOrder,ORDERID)
@@ -91,23 +101,22 @@ def is_exit_position(exchange):
 
     if is_stop_loss or is_exit_profit :
         #Log("卖出ing:",order)
-        orderid= exchange.Sell(price,deal_amount)
+        ORDERID= exchange.Sell(price,deal_amount)
         Sleep(15*60*1000)
         #没卖出就撤单
-        order = _C(exchange.GetOrder,orderid)
+        order = _C(exchange.GetOrder,ORDERID)
         if order["DealAmount"] == 0:
-            is_cancled = exchange.CancelOrder(orderid)
+            is_cancled = exchange.CancelOrder(ORDERID)
             if is_cancled:
                 Log("卖出撤单成功")
                 return
         #
-        ORDERID = -1
-        ORDERUNIX = 0
+        ORDERIDs[i] = -1
+        ORDERUNIXs[i] = 0
         if is_stop_loss:
-            Log("止损卖出成功")
+            Log("止损卖出成功",exchange.GetCurrency())
         else:
-            Log("止盈卖出成功")
-
+            Log("止盈卖出成功",exchange.GetCurrency())
 
 def main():
     while True:
@@ -116,4 +125,9 @@ def main():
         for i in range(len(exchanges)):
             trade(i)
             is_exit_position(i)
+            #log profit
+            # exchange = exchanges[i]
+            # account = _C(exchange.GetAccount)
+            # balance = account["Balance"]
+            # LogProfit(balance)
             Sleep(60*1000)
