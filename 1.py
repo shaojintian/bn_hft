@@ -318,7 +318,7 @@ def deal_short(context, future_code, symbol):
         if is_add_position and more_amount > 0:
             result = order(current_f, more_amount, side='short')
             if result is not None:
-                g.porfolio_short_price[current_f] = result["price"]
+                g.porfolio_short_price[current_f] = result.price
                 # log.info("做空浮盈加仓", current_f, more_amount)
                 return
 
@@ -340,7 +340,7 @@ def deal_short(context, future_code, symbol):
             if result is None:
                 log.error('做空下单错误', current_f, price_now)
             else:
-                g.porfolio_short_price[current_f] = result["price"]
+                g.porfolio_short_price[current_f] = result.price
 
 
 # 收盘价
