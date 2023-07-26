@@ -175,6 +175,14 @@ def market_open(context):
 def deal_long(context, future_code, symbol):
     # 当月合约
     current_f = future_code
+    # 获取当前合约历史数据
+    num = 30
+    df = attribute_history(current_f, num)
+    price_now = df['close'][-1]
+    last_day_close = df['close'][-1]
+    if last_day_close == 0:
+        log.error(current_f,"此合约没价格")
+        return
     # 是否目前有仓位
     cur_long = 0
 
@@ -189,12 +197,6 @@ def deal_long(context, future_code, symbol):
         if cost_price == 0:
             log.error(current_f,cost_price,"long持仓价为0")
             g.porfolio_long_price[current_f] = context.portfolio.long_positions[current_f].avg_cost
-
-    # 获取当前合约历史数据
-    num = 30
-    df = attribute_history(current_f, num)
-    price_now = df['close'][-1]
-    last_day_close = df['close'][-1]
 
     # 获取周线级别数据，画图
     df_week = attribute_history(current_f, 40, unit='5d')
@@ -237,7 +239,7 @@ def deal_long(context, future_code, symbol):
             result = order(current_f, more_amount, side='long')
             if result is not None and result.filled >0:
                 g.porfolio_long_price[current_f] = result.price
-                #log.info("long浮盈加仓",current_f,more_amount)
+                log.info("long浮盈加仓",current_f,more_amount)
                 return
 
     # 开仓！！！！！！！
@@ -266,6 +268,14 @@ def deal_long(context, future_code, symbol):
 def deal_short(context, future_code, symbol):
     # 当月合约
     current_f = future_code
+    # 获取当前合约历史数据
+    num = 30
+    df = attribute_history(current_f, num)
+    price_now = df['close'][-1]
+    last_day_close = df['close'][-1]
+    if last_day_close == 0:
+        log.error(current_f,"此合约没价格")
+        return
     # 是否目前有仓位
     cur_short = 0
 
@@ -280,14 +290,21 @@ def deal_short(context, future_code, symbol):
         # 持仓价
         cost_price = g.porfolio_short_price[current_f]
         if cost_price == 0:
-            log.error(current_f,cost_price,"short持仓价为0")
-            g.porfolio_short_price[current_f] = context.portfolio.short_positions[current_f].avg_cost
-
+            log.info(current_f,cost_price,"short持仓价为0")
+            if context.portfolio.short_positions[current_f].avg_cost >0:
+                g.porfolio_short_price[current_f] = context.portfolio.short_positions[current_f].avg_cost
+            else :
+                g.porfolio_short_price[current_f] = price_s
+        cost_price = g.porfolio_short_price[current_f]
+    #
     # 获取当前合约历史数据
     num = 30
     df = attribute_history(current_f, num)
     price_now = df['close'][-1]
     last_day_close = df['close'][-1]
+    if last_day_close == 0:
+        log.error(current_f,"此合约没价格")
+        return
 
     # 获取周线级别数据，画图
     df_week = attribute_history(current_f, 40, unit='5d')
@@ -329,7 +346,7 @@ def deal_short(context, future_code, symbol):
         #             log.info("short浮盈加仓", current_f, more_amount)
         #             return
 
-    # 开仓！！！！！！！
+    # 做空 开仓！！！！！！！
     if cur_short == 0:
         # 开仓手数
         # 保证金=合约价格x交易单位x保证金比例
@@ -346,8 +363,10 @@ def deal_short(context, future_code, symbol):
             result = order_target(current_f, amount, side='short')
             if result is None:
                 log.error('做空下单错误', current_f, price_now)
-            elif result.filled > 0:
+            elif result.price > 0:
                 g.porfolio_short_price[current_f] = result.price
+            else:
+                g.porfolio_short_price[current_f] = last_day_close
 
 
 # 收盘
