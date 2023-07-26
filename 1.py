@@ -59,7 +59,7 @@ def initialize(context):
         'I': 100,  # 铁矿石
         'MA': 10,  # 甲醇
         'SR': 10,  # 白糖
-        'UR': 20,   # 尿素
+        'UR': 20,  # 尿素
     }
 
     g.future_list = []
@@ -118,8 +118,10 @@ def before_market_open(context):
     g.SR = get_dominant_future('SR')
     g.UR = get_dominant_future('UR')
 
-    #更新list
-    g.future_list = list(set([g.AP, g.BU, g.FG, g.RB, g.Y, g.AG, g.P, g.TA, g.AU, g.CU, g.RU, g.J, g.M, g.CF, g.SA, g.ZN, g.I, g.MA, g.SR,g.UR]))
+    # 更新list
+    g.future_list = list(
+        set([g.AP, g.BU, g.FG, g.RB, g.Y, g.AG, g.P, g.TA, g.AU, g.CU, g.RU, g.J, g.M, g.CF, g.SA, g.ZN, g.I, g.MA,
+             g.SR, g.UR]))
     g.future_list = [item for item in g.future_list if item != '']
     #   设置交易天数时钟，持续统计交易天数
     context.day = context.day + 1
@@ -138,7 +140,7 @@ def market_open(context):
     #               g.MA}
     # future_list = {item for item in future_list if item != ''}
     # log.info(future_list)
-    future_list=g.future_list
+    future_list = g.future_list
     # 获取合约数量
     context.num = len(future_list)
 
@@ -156,7 +158,7 @@ def market_open(context):
     for future_code in g.future_list:
         symbol = re.search(r'^(\D+)', future_code).group(1)
         deal_long(context, future_code, symbol)
-        #deal_short(context, future_code, symbol)
+        # deal_short(context, future_code, symbol)
 
 
 # 交易逻辑
@@ -209,8 +211,8 @@ def deal_long(context, future_code, symbol):
 
         # 移动止损: TODO 0.5%
         is_stopping_loss = price_l <= g.porfolio_price[current_f] * 0.995 or (
-                    is_one_week_ago(context.current_dt, open_position_time) and price_l <= g.porfolio_price[
-                current_f] + 1)
+                is_one_week_ago(context.current_dt, open_position_time) and price_l <= g.porfolio_price[
+            current_f] + 1)
         if is_close_position or is_stopping_loss:
             result = order_target_value(current_f, 0, side='long')
             if result is not None:
@@ -219,39 +221,34 @@ def deal_long(context, future_code, symbol):
 
         # 浮盈加仓
         is_add_position = price_l < last_day_close
-        open_cash = 100000
+        open_cash = 200000
         more_amount = amount_available(context, open_cash, price_l, symbol)
         if is_add_position and more_amount > 0:
-            result = order(current_f,  more_amount, side='long')
+            result = order(current_f, more_amount, side='long')
             if result is not None:
-                #log.info("浮盈加仓",current_f,more_amount)
+                # log.info("浮盈加仓",current_f,more_amount)
                 return
 
     # 开仓！！！！！！！
     if cur_long == 0:
-        #如果有空，先平空
-        if residual_short == 1:
-            result = order_target_value(current_f, 0, side='short')
-            if result is not None:
-                log.info("先平空")
-                g.porfolio_price[current_f] = 0
         # 开仓手数
         # 保证金=合约价格x交易单位x保证金比例
         # 开仓：限制每单10w
-        open_cash = 10000
-        amount = amount_available(context,open_cash,price_now,symbol)
+        open_cash = 100000
+        amount = amount_available(context, open_cash, price_now, symbol)
         is_open_position = (
-                    weekday == 5 and df_week['open'][-2] > ma_40_week and df_week['close'][-1] > df_week['high'][-2]
-                    and df_week['low'][-1] > df_week['open'][-2]
-                    and is_all_week_scaling(df_week[-2:]) and check_weekly_increase(df_week[-2:]))
+                weekday == 5 and df_week['open'][-2] > ma_40_week and df_week['close'][-1] > df_week['high'][-2]
+                and df_week['low'][-1] > df_week['open'][-2]
+                and is_all_week_scaling(df_week[-2:]) and check_weekly_increase(df_week[-2:]))
 
-        #开仓
+        # 开仓
         if is_open_position and amount > 0:
             result = order_target(current_f, amount, side='long')
             if result is None:
                 log.error('下单错误', current_f, price_now)
             else:
                 g.porfolio_price[current_f] = price_now
+
 
 # 做空逻辑
 def deal_short(context, future_code, symbol):
@@ -363,6 +360,8 @@ def deal_stop_long_loss(context, future_code):
         result = order_target_value(current_f, 0, side='long')
         if result != None:
             g.porfolio_price[current_f] = 0
+
+
 def deal_stop_short_loss(context, future_code):
     # 查看空单仓位情况
     current_f = future_code
@@ -373,6 +372,7 @@ def deal_stop_short_loss(context, future_code):
         if result != None:
             g.porfolio_price[current_f] = 0
 
+
 ##util 是否每周都是递增
 def check_weekly_increase(weeks_data):
     for i in range(len(weeks_data)):
@@ -380,13 +380,13 @@ def check_weekly_increase(weeks_data):
             return False
     return True
 
+
 ## 是否每周都是振幅缩小
 def check_weekly_decrease(weeks_data):
     for i in range(len(weeks_data)):
         if weeks_data['close'][i] - weeks_data['open'][i] >= 0:
             return False
     return True
-
 
 
 ## 是否每周都是振幅扩大
@@ -413,9 +413,9 @@ def add_position():
 
 
 # 计算能开多少手
-def amount_available(context,open_cash,price_now,symbol):
+def amount_available(context, open_cash, price_now, symbol):
     amount = 0
-    open_cash = min(open_cash,context.portfolio.available_cash * 0.95)
+    open_cash = min(open_cash, context.portfolio.available_cash * 0.95)
     amount = math.floor(open_cash / (price_now * g.MarginUnit[symbol] * context.inc))
     return amount
 
