@@ -1,6 +1,85 @@
-SYMBOLS = ["LTC_USDT", "XRP_USDT", "BCH_USDT", "EOS_USDT", "XLM_USDT", "TRX_USDT", "VET_USDT", "DOGE_USDT"]
+def deal_short(context, future_code, symbol):
+    # 当月合约
+    current_f = future_code
+    # 是否目前有仓位
+    cur_short = 0
 
-# Create a dictionary with the keys from the SYMBOLS list and values set to -1
-symbol_dict = {symbol: -1 for symbol in SYMBOLS}
+    # 最新价
+    price_s = 0
+    # 最新持仓价
+    cost_price = 0
+    # 查看空单仓位情况
+    if current_f in context.portfolio.short_positions.keys() and context.portfolio.short_positions[current_f].value > 0:
+        cur_short = 1
+        price_s = context.portfolio.short_positions[current_f].price
+        # 持仓价
+        cost_price = g.porfolio_short_price[current_f]
+        if cost_price == 0:
+            log.error(current_f,cost_price,"short持仓价为0")
+            g.porfolio_short_price[current_f] = context.portfolio.short_positions[current_f].avg_cost
 
-print(symbol_dict)
+    # 获取当前合约历史数据
+    num = 30
+    df = attribute_history(current_f, num)
+    price_now = df['close'][-1]
+    last_day_close = df['close'][-1]
+
+    # 获取周线级别数据，画图
+    df_week = attribute_history(current_f, 40, unit='5d')
+    ma_40_week = df_week['close'].mean()
+    # record(ma_99_week = ma_99_week, close = df_week['close'][-1])
+    end_date = context.current_dt
+    # 周几
+    weekday = context.current_dt.isoweekday()
+
+    # 止盈or止损or加仓
+    if cur_short > 0:
+        #
+        open_position_time = context.portfolio.short_positions[current_f].init_time
+        last_open_position_time = context.portfolio.short_positions[current_f].transact_time
+        # 更新开仓以来的最低价
+        df_low = get_price(current_f, start_date=open_position_time, end_date=context.current_dt, frequency='daily')
+        #
+        lowest_from_open = df_low["close"].min()
+        # 动态止盈：TODO 3% 止盈
+        is_close_position = (price_s - cost_price) / cost_price <= -0.03
+
+        # 移动止损: TODO 0.5%
+        is_stopping_loss = price_s >= cost_price * 1.005 or (
+                is_one_week_ago(context.current_dt, open_position_time) and price_s >= price_s)
+        if is_close_position or is_stopping_loss:
+            result = order_target_value(current_f, 0, side='short')
+            if result is not None:
+                g.porfolio_short_price[current_f] = 0
+                return
+
+        # 浮盈加仓
+        is_add_position = is_one_week_ago(context.current_dt, last_open_position_time, 1)
+        open_cash = min(context.portfolio.available_cash * 0.1,50000)
+        more_amount = amount_available(context, open_cash, price_s, symbol)
+        if is_add_position and more_amount > 0:
+            result = order(current_f, more_amount, side='short')
+            if result is not None and result.filled > 0:
+                    g.porfolio_short_price[current_f] = result.price
+                    log.info("short浮盈加仓", current_f, more_amount)
+                    return
+
+    # 开仓！！！！！！！
+    if cur_short == 0:
+        # 开仓手数
+        # 保证金=合约价格x交易单位x保证金比例
+        # 开仓：限制每单10w
+        open_cash = 50000
+        amount = amount_available(context, open_cash, price_now, symbol)
+        is_open_position = (
+                weekday == 5 and df_week['open'][-2] < ma_40_week and df_week['close'][-1] < df_week['low'][-2]
+                and df_week['high'][-1] < df_week['open'][-2]
+                and is_all_week_scaling(df_week[-2:]) and check_weekly_decrease(df_week[-2:]))
+
+        # 开仓
+        if is_open_position and amount > 0:
+            result = order_target(current_f, amount, side='short')
+            if result is None:
+                log.error('做空下单错误', current_f, price_now)
+            elif result.filled > 0:
+                g.porfolio_short_price[current_f] = result.price
