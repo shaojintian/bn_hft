@@ -228,7 +228,7 @@ def deal_long(context, future_code, symbol):
         if is_add_position and more_amount > 0:
             result = order(current_f, more_amount, side='long')
             if result is not None:
-                g.porfolio_long_price[current_f] = result['price']
+                g.porfolio_long_price[current_f] = result.price
                 # log.info("浮盈加仓",current_f,more_amount)
                 return
 
