@@ -35,7 +35,8 @@ def initialize(context):
     context.day = 0
 
     # 记录买入价
-    g.porfolio_price = {}
+    g.porfolio_long_price = {}
+    g.porfolio_short_price = {}
 
     # 合约交易单位
     g.MarginUnit = {
@@ -148,17 +149,18 @@ def market_open(context):
     for future in context.portfolio.short_positions.keys():
         if future not in g.future_list:
             order_target_value(future, 0, side='short')
+            g.porfolio_short_price[future] = 0
     for future in context.portfolio.long_positions.keys():
         if future not in g.future_list:
             order_target_value(future, 0, side='long')
-            g.porfolio_price[future] = 0
+            g.porfolio_long_price[future] = 0
     # 主力合约切换以后不主动平仓，如主动平仓，使用上面的代码
     # 通过以下，发现现象，贴近合约到期月份，不主动平仓，收益是增加的。这一条是否高可能性需要进一步确认。
 
     for future_code in g.future_list:
         symbol = re.search(r'^(\D+)', future_code).group(1)
-        deal_long(context, future_code, symbol)
-        # deal_short(context, future_code, symbol)
+        # deal_long(context, future_code, symbol)
+        deal_short(context, future_code, symbol)
 
 
 # 交易逻辑
@@ -210,13 +212,13 @@ def deal_long(context, future_code, symbol):
         is_close_position = (price_l - highest_from_open) / highest_from_open <= -0.05
 
         # 移动止损: TODO 0.5%
-        is_stopping_loss = price_l <= g.porfolio_price[current_f] * 0.995 or (
-                is_one_week_ago(context.current_dt, open_position_time) and price_l <= g.porfolio_price[
+        is_stopping_loss = price_l <= g.porfolio_long_price[current_f] * 0.995 or (
+                is_one_week_ago(context.current_dt, open_position_time) and price_l <= g.porfolio_long_price[
             current_f] + 1)
         if is_close_position or is_stopping_loss:
             result = order_target_value(current_f, 0, side='long')
             if result is not None:
-                g.porfolio_price[current_f] = 0
+                g.porfolio_long_price[current_f] = 0
                 return
 
         # 浮盈加仓
@@ -226,6 +228,7 @@ def deal_long(context, future_code, symbol):
         if is_add_position and more_amount > 0:
             result = order(current_f, more_amount, side='long')
             if result is not None:
+                g.porfolio_long_price[current_f] = result['price']
                 # log.info("浮盈加仓",current_f,more_amount)
                 return
 
@@ -247,7 +250,8 @@ def deal_long(context, future_code, symbol):
             if result is None:
                 log.error('下单错误', current_f, price_now)
             else:
-                g.porfolio_price[current_f] = price_now
+                #
+                g.porfolio_long_price[current_f] = context.portfolio.long_positions[current_f].price
 
 
 # 做空逻辑
@@ -263,10 +267,14 @@ def deal_short(context, future_code, symbol):
 
     # 最新价
     price_s = 0
+    # 持仓价
+    cost_price = 0
     # 查看空单仓位情况
     if current_f in context.portfolio.short_positions.keys():
         cur_short = 1
         price_s = context.portfolio.short_positions[current_f].price
+        # 持仓价
+        cost_price = g.porfolio_short_price[current_f]
 
     # 获取当前合约历史数据
     num = 30
@@ -291,35 +299,35 @@ def deal_short(context, future_code, symbol):
         df_low = get_price(current_f, start_date=open_position_time, end_date=context.current_dt, frequency='daily')
         #
         lowest_from_open = df_low["close"].min()
-        # 动态止盈：TODO 最低点反弹3%止盈
-        is_close_position = (price_s - lowest_from_open) / lowest_from_open >= 0.03
+        # 动态止盈：TODO 3% 止盈
+        is_close_position = (price_s - cost_price) / cost_price <= -0.05
 
         # 移动止损: TODO 0.5%
-        is_stopping_loss = price_s >= g.porfolio_price[current_f] * 1.005 or (
-                is_one_week_ago(context.current_dt, open_position_time) and price_s >= g.porfolio_price[
-            current_f] - 1)
+        is_stopping_loss = price_s >= cost_price * 1.005 or (
+                is_one_week_ago(context.current_dt, open_position_time) and price_s >= price_s)
         if is_close_position or is_stopping_loss:
             result = order_target_value(current_f, 0, side='short')
             if result is not None:
-                g.porfolio_price[current_f] = 0
+                g.porfolio_short_price[current_f] = 0
                 return
 
-        # # 浮盈加仓
-        # is_add_position = is_one_week_ago(context.current_dt,last_open_position_time,1)
-        # open_cash = 20000
-        # more_amount = amount_available(context, open_cash, price_s, symbol)
-        # if is_add_position and more_amount > 0:
-        #     result = order(current_f, more_amount, side='short')
-        #     if result is not None:
-        #         log.info("做空浮盈加仓", current_f, more_amount)
-        #         return
+        # 浮盈加仓
+        is_add_position = is_one_week_ago(context.current_dt, last_open_position_time, 1)
+        open_cash = 20000
+        more_amount = amount_available(context, open_cash, price_s, symbol)
+        if is_add_position and more_amount > 0:
+            result = order(current_f, more_amount, side='short')
+            if result is not None:
+                g.porfolio_short_price[current_f] = result["price"]
+                # log.info("做空浮盈加仓", current_f, more_amount)
+                return
 
     # 开仓！！！！！！！
     if cur_short == 0:
         # 开仓手数
         # 保证金=合约价格x交易单位x保证金比例
         # 开仓：限制每单10w
-        open_cash = 10000
+        open_cash = 50000
         amount = amount_available(context, open_cash, price_now, symbol)
         is_open_position = (
                 weekday == 5 and df_week['open'][-2] < ma_40_week and df_week['close'][-1] < df_week['low'][-2]
@@ -332,14 +340,12 @@ def deal_short(context, future_code, symbol):
             if result is None:
                 log.error('做空下单错误', current_f, price_now)
             else:
-                g.porfolio_price[current_f] = price_now
+                g.porfolio_short_price[current_f] = result["price"]
 
 
 # 收盘价
 def after_market_close(context):
-    for future_code in g.future_list:
-        if future_code in context.portfolio.long_positions.keys():
-            g.porfolio_price[future_code] = context.portfolio.long_positions[future_code].price
+    return
 
 
 # 风控,每日执行
@@ -355,22 +361,22 @@ def deal_stop_long_loss(context, future_code):
     # 查看多单仓位情况
     current_f = future_code
     price_now = context.portfolio.long_positions[current_f].price
-    is_stopping_loss = price_now <= g.porfolio_price[current_f] * 0.995
+    is_stopping_loss = price_now <= g.porfolio_long_price[current_f] * 0.995
     if is_stopping_loss:
         result = order_target_value(current_f, 0, side='long')
         if result != None:
-            g.porfolio_price[current_f] = 0
+            g.porfolio_long_price[current_f] = 0
 
 
 def deal_stop_short_loss(context, future_code):
     # 查看空单仓位情况
     current_f = future_code
     price_now = context.portfolio.short_positions[current_f].price
-    is_stopping_loss = price_now >= g.porfolio_price[current_f] * 1.005
+    is_stopping_loss = price_now >= g.porfolio_short_price[current_f] * 1.005
     if is_stopping_loss:
         result = order_target_value(current_f, 0, side='short')
         if result != None:
-            g.porfolio_price[current_f] = 0
+            g.porfolio_short_price[current_f] = 0
 
 
 ##util 是否每周都是递增
