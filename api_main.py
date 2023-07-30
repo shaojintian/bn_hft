@@ -21,7 +21,7 @@ INTERVAL = 0.1
 CANCEL_RATE = 0.0
 
 #
-OBI_THREHOLD = 1.5
+OBI_THREHOLD = 0.618
 
 # 买入比例
 LOB_THRESHOLD = 0
@@ -50,14 +50,16 @@ PRICE_CHANGE_AFTER_SIGNAL_DELAY = [0.0]
 def message_handler():
     with lock:
         global buy_in_price, profit, position, ORDER_AMOUNT, obi_amount, obi_sum, obis, SIGNAL
-        data_dict = client.depth(symbol=COIN, limit=50)
+        data_dict = client.depth(symbol=COIN, limit=20)
 
-        bid_1 = float(data_dict["bids"][5][0])
+        bid_1 = float(data_dict["bids"][2][0])
         ask_1 = float(data_dict["asks"][0][0])
         # 监控order book imbalance
         bid_quantity = sum(float(row[1]) for row in data_dict["bids"])
         ask_quantity = sum(float(row[1]) for row in data_dict["asks"])
-        obi = bid_quantity / ask_quantity
+        #
+        obi = (bid_quantity - ask_quantity) / (ask_quantity+bid_quantity)
+        #
         obis_reverse.append(1 / obi)
         obis.append(obi)
 
@@ -78,8 +80,8 @@ def message_handler():
             position = 1
             buy_in_price = bid_1
             print("BID BUY: price:%f amount:%f" % (bid_1, ORDER_AMOUNT))
-            #time.sleep(INTERVAL)
-        elif position == 1 :
+            #time.sleep(5)
+        elif position == 1:
             # 下单止盈
             # print("BID SELL: price:%f amount:%f"% (ask_1, order_amount))
             success = do_order(COIN, Trade.SELL.value, 'LIMIT', ORDER_AMOUNT, ask_1)
@@ -132,6 +134,7 @@ def message_handler():
 
 # 下单，没成交就撤单
 def do_order(symbol=COIN, side="SELL", _type='LIMIT', quantity=ORDER_AMOUNT, price=None):
+    #return True
     # Post a new order
     params = {
         'symbol': symbol,
@@ -145,7 +148,7 @@ def do_order(symbol=COIN, side="SELL", _type='LIMIT', quantity=ORDER_AMOUNT, pri
     logging.debug(params)
     try:
         response = client.new_order(**params)
-        time.sleep(3)
+        time.sleep(5)
         response = client.get_order(symbol=symbol, orderId=int(response['orderId']))
         # print(response)
         if response.get('status') == 'PARTIALLY_FILLED' and side == Trade.SELL.value:
@@ -178,13 +181,14 @@ def handle_signal(signum, frame):
         position = 0
     end_time = time.time()
 
-    # plot_monitor_metrics(obis,"order book imbalance")
+    # draw plot
+    plot_monitor_metrics(obis,"order book imbalance")
     # plot_monitor_metrics(obis_reverse,"oder book  imbalance reverse")
     # 统计PRICE_CHANGE_AFTER_SIGNAL_DELAY
     negative_count = sum(1 for change in PRICE_CHANGE_AFTER_SIGNAL_DELAY if change < 0)
     # 计算小于0的比例
     negative_ratio = negative_count / len(PRICE_CHANGE_AFTER_SIGNAL_DELAY)
-    print("\n%ds后亏损的比例为: %.2f%%，交易次数%d\n" %(INTERVAL,negative_ratio*100,len(PRICE_CHANGE_AFTER_SIGNAL_DELAY)))
+    print("\n%ds后亏损的比例为: %.2f%%，交易次数%d\n" %(INTERVAL,negative_ratio*100,len(PRICE_CHANGE_AFTER_SIGNAL_DELAY)-1))
     print("------FINAL PROFIT-------:%f" % profit)
     profit_per_day = (profit / ((end_time - start_time) / 60)) * 24 * 60
     profit_per_month = profit_per_day * 30 * USDCNY
@@ -199,7 +203,7 @@ def handle_signal(signum, frame):
 def plot_monitor_metrics(x,title):
     # 绘制监控图像
     plt.hist(x, bins=20, edgecolor='black')  # bins参数决定直方图的箱数
-    plt.xticks(range(20))
+    #plt.xticks(range(20))
     plt.title(title)
     plt.xlabel("OBI")
     plt.ylabel('Frequency')
@@ -213,7 +217,7 @@ class Trade(enum.Enum):
 
 
 if __name__ == '__main__':
-    OBI_THREHOLD = float(input("Please enter the interval between price changes in seconds (default=3): "))
+    #OBI_THREHOLD = float(input("Please enter the interval between price changes in seconds (default=3): "))
     # print_profit()
     ip = get_current_proxy_ip()
     print("当前代理 IP:", ip)
@@ -224,7 +228,7 @@ if __name__ == '__main__':
     # 获取账号:ip_search.py
     client = Client(api_key='Ng4rh2vG90dbfjVXPAzRYPaLpGcWXuSTcxZqmNKtEXyvl1iqwUKeRG6PPqfdUkDZ',
                     api_secret='XxExX9qAXtvKE0aAiP4CiFer8qnF4sxlcoXLNCMFFu7CfTMi95SyOS82I2a5QAVc')
-    logging.debug(client.user_asset())
+    #logging.debug(client.user_asset())
     start_time = time.time()
     # 开始运行
     while True:
